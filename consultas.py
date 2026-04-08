@@ -192,7 +192,7 @@ with st.form("form_consulta"):
         produto = st.text_input("Produto (Opcional)")
 
     st.markdown("<br>", unsafe_allow_html=True)
-    executar = st.form_submit_button("🚀 Executar Consulta", use_container_width=True)
+    executar = st.form_submit_button("🚀 Executar", use_container_width=True)
 
 if executar:
     if not usuario or not senha or not promocao:
@@ -203,7 +203,7 @@ if executar:
         with st.expander("📄 SQL Gerado"):
             st.code(sql, language="sql")
 
-        with st.spinner("Executando no SGE... (pode demorar 1-3 minutos no Cloud)"):
+        with st.spinner("Executando..."):
             resultado = executar_automacao(usuario, senha, sql)
 
         if resultado.startswith("✅"):
