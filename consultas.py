@@ -89,7 +89,7 @@ def esperar_download_concluir(diretorio, timeout=120):
     return "⚠️ Tempo esgotado aguardando o arquivo .xlsx"
 
 # =========================
-# EXECUÇÃO SELENIUM - VERSÃO OTIMIZADA PARA STREAMLIT CLOUD
+# EXECUÇÃO SELENIUM - VERSÃO CORRIGIDA PARA VERSÃO 146
 # =========================
 
 def executar_automacao(usuario, senha, query):
@@ -97,7 +97,7 @@ def executar_automacao(usuario, senha, query):
     
     options = Options()
     
-    # Opções essenciais para Cloud + Headless
+    # Opções essenciais para Streamlit Cloud + Chromium 146
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
@@ -107,8 +107,8 @@ def executar_automacao(usuario, senha, query):
     options.add_argument("--disable-setuid-sandbox")
     options.add_argument("--remote-debugging-port=9222")
     
-    # Tenta forçar o binary do Chromium instalado via packages.txt
-    options.binary_location = "/usr/bin/chromium"   # caminho mais comum no Streamlit Cloud
+    # Força o caminho do Chromium instalado
+    options.binary_location = "/usr/bin/chromium"
 
     prefs = {
         "download.default_directory": download_dir,
@@ -121,8 +121,9 @@ def executar_automacao(usuario, senha, query):
     options.add_experimental_option("prefs", prefs)
 
     try:
-        # webdriver_manager tenta baixar o driver compatível
-        service = Service(ChromeDriverManager().install())
+        # === SOLUÇÃO PRINCIPAL: Forçar versão compatível com Chrome 146 ===
+        service = Service(ChromeDriverManager().install(driver_version="146.0.7680.177"))
+        
         driver = webdriver.Chrome(service=service, options=options)
         wait = WebDriverWait(driver, 240)
 
@@ -138,7 +139,7 @@ def executar_automacao(usuario, senha, query):
 
         driver.find_element(By.XPATH, XPATH_BOTAO_EXECUTAR).click()
 
-        # Aguarda resultados
+        # Aguarda página de resultados
         while "/results/" not in driver.current_url:
             if driver.find_elements(By.ID, ID_SECAO_ERRO):
                 msg = driver.find_element(By.ID, ID_MSG_ERRO).text
@@ -146,7 +147,7 @@ def executar_automacao(usuario, senha, query):
                 return f"❌ Erro no servidor: {msg}"
             time.sleep(2)
 
-        # Força download
+        # Força comportamento de download
         driver.execute_cdp_cmd("Page.setDownloadBehavior", {"behavior": "allow", "downloadPath": download_dir})
         botao = wait.until(EC.element_to_be_clickable((By.XPATH, XPATH_BOTAO_DOWNLOAD)))
         botao.click()
@@ -160,7 +161,7 @@ def executar_automacao(usuario, senha, query):
         return f"❌ Erro na automação: {str(e)}"
 
 # =========================
-# INTERFACE
+# INTERFACE STREAMLIT
 # =========================
 
 st.set_page_config(page_title="Consulta Promoção", layout="wide")
