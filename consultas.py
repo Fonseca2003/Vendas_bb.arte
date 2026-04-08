@@ -75,7 +75,7 @@ WHERE B.NROSEGMENTO = 2
 # DOWNLOAD
 # =========================
 
-def esperar_download_concluir(diretorio, timeout=120):
+def esperar_download_concluir(diretorio, timeout=150):
     segundos = 0
     while segundos < timeout:
         time.sleep(1)
@@ -88,7 +88,7 @@ def esperar_download_concluir(diretorio, timeout=120):
     return "⚠️ Tempo esgotado aguardando o arquivo .xlsx"
 
 # =========================
-# EXECUÇÃO SELENIUM - USANDO chromedriver DO SISTEMA
+# EXECUÇÃO SELENIUM - OTIMIZADA PARA CLOUD
 # =========================
 
 def executar_automacao(usuario, senha, query):
@@ -99,12 +99,12 @@ def executar_automacao(usuario, senha, query):
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
+    options.add_argument("--disable-software-rasterizer")
     options.add_argument("--window-size=1920,1080")
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-setuid-sandbox")
     options.add_argument("--remote-debugging-port=9222")
-    
-    # Usa o Chromium instalado via packages.txt
+    options.add_argument("--disable-features=Translate,OptimizationHints")
     options.binary_location = "/usr/bin/chromium"
 
     prefs = {
@@ -118,11 +118,18 @@ def executar_automacao(usuario, senha, query):
     options.add_experimental_option("prefs", prefs)
 
     try:
-        # Usa o chromedriver instalado pelo sistema (chromium-driver)
-        service = Service("/usr/bin/chromedriver")
-        
+        # Serviço com timeout maior
+        service = Service(
+            executable_path="/usr/bin/chromedriver",
+            log_path=os.devnull  # reduz ruído
+        )
+
         driver = webdriver.Chrome(service=service, options=options)
-        wait = WebDriverWait(driver, 240)
+        
+        # Dá tempo para o navegador estabilizar no ambiente Cloud
+        time.sleep(3)
+
+        wait = WebDriverWait(driver, 300)  # 5 minutos no total
 
         driver.get(URL_LOGIN)
         wait.until(EC.presence_of_element_located((By.XPATH, XPATH_USUARIO))).send_keys(usuario)
@@ -136,27 +143,34 @@ def executar_automacao(usuario, senha, query):
 
         driver.find_element(By.XPATH, XPATH_BOTAO_EXECUTAR).click()
 
+        # Aguarda resultados
         while "/results/" not in driver.current_url:
             if driver.find_elements(By.ID, ID_SECAO_ERRO):
                 msg = driver.find_element(By.ID, ID_MSG_ERRO).text
                 driver.quit()
                 return f"❌ Erro no servidor: {msg}"
-            time.sleep(2)
+            time.sleep(3)
 
+        # Download
         driver.execute_cdp_cmd("Page.setDownloadBehavior", {"behavior": "allow", "downloadPath": download_dir})
         botao = wait.until(EC.element_to_be_clickable((By.XPATH, XPATH_BOTAO_DOWNLOAD)))
         botao.click()
-        time.sleep(4)
+        time.sleep(5)
 
-        resultado = esperar_download_concluir(download_dir)
+        resultado = esperar_download_concluir(download_dir, timeout=150)
         driver.quit()
         return resultado
 
     except Exception as e:
         return f"❌ Erro na automação: {str(e)}"
+    finally:
+        try:
+            driver.quit()
+        except:
+            pass
 
 # =========================
-# INTERFACE STREAMLIT
+# INTERFACE
 # =========================
 
 st.set_page_config(page_title="Consulta Promoção", layout="wide")
@@ -189,7 +203,7 @@ if executar:
         with st.expander("📄 SQL Gerado"):
             st.code(sql, language="sql")
 
-        with st.spinner("Executando no SGE e baixando arquivo... (pode demorar até 2 minutos)"):
+        with st.spinner("Executando no SGE... (pode demorar 1-3 minutos no Cloud)"):
             resultado = executar_automacao(usuario, senha, sql)
 
         if resultado.startswith("✅"):
