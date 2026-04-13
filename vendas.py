@@ -4,6 +4,16 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import base64
+from PIL import Image
+
+# Carrega a imagem
+img = Image.open("logo.png")
+
+st.set_page_config(
+    page_title="Vendas bb.arte",
+    page_icon=img,
+    layout="wide" # Opcional: aproveita melhor o espaço da tela
+)
 
 # ==========================================
 # CONFIGURAÇÃO DE TEMA (COR DE FUNDO + MODO CLARO)
