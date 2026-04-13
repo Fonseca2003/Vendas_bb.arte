@@ -11,22 +11,35 @@ import base64
 # Podes alterar as cores HEX (#...) abaixo para as que preferires
 custom_css = """
 <style>
+    /* Suas configurações fixas */
     [data-testid="stAppViewContainer"] {
-        background-color: #718f98; /* Cor de fundo principal */
+        background-color: #718f98; 
     }
-
     [data-testid="stHeader"] {
         background-color: #fab0b8;
     }
-
     [data-testid="stSidebar"] {
-        background-color: #b2ccd3; /* Cor de fundo da lateral */
+        background-color: #b2ccd3;
     }
 
-    /* COR DO TEXTO PRINCIPAL */
-    /* Este seletor muda quase todos os textos básicos do Streamlit */
+    /* Texto geral sempre branco (conforme seu código) */
     .stApp, .stMarkdown, p, h1, h2, h3 {
-        color: #ffffff !important; /* Troque aqui pela cor desejada */
+        color: #ffffff !important;
+    }
+
+    /* --- LÓGICA PARA O MODO CLARO --- */
+    @media (prefers-color-scheme: light) {
+        /* Altera apenas o texto dos botões para preto quando o celular estiver no modo claro */
+        div.stButton > button {
+            color: #000000 !important;
+        }
+    }
+    
+    /* Opcional: Garantir que no modo escuro o texto do botão continue branco */
+    @media (prefers-color-scheme: dark) {
+        div.stButton > button {
+            color: #ffffff !important;
+        }
     }
 </style>
 """
