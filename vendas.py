@@ -138,8 +138,8 @@ if not st.session_state.logged_in:
                 """,
                 unsafe_allow_html=True
             )    
-        else:
-            st.title("🛍️ Vendas bb.arte")
+    else:
+        st.title("🛍️ Vendas bb.arte")
         
     tab_login, tab_esqueci = st.tabs(["Login", "Esqueci minha senha"])
     df_u = get_users_df()
