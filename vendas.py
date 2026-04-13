@@ -41,7 +41,7 @@ def get_products_df():
     return df
 
 # =========================
-# SISTEMA DE LOGIN E SEGURANÇA
+# SISTEMA DE LOGIN
 # =========================
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
@@ -49,62 +49,20 @@ if 'logged_in' not in st.session_state:
     st.session_state.role = None
 
 if not st.session_state.logged_in:
-    def get_base64_image(image_path):
-        try:
-            with open(image_path, "rb") as img_file:
-                return base64.b64encode(img_file.read()).decode()
-        except:
-            return None
-
-    img_base64 = get_base64_image("logo.png")
-
-    if img_base64:
-        st.markdown(
-            f"""
-            <div style="display: flex; align-items: center; margin-bottom: 20px;">
-                <img src="data:image/png;base64,{img_base64}" style="width: 40px; margin-right: 15px;">
-                <h1 style="margin: 0;">Vendas bb.arte</h1>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    else:
-        st.title("🛍️ Vendas bb.arte")
-    
-    tab_login, tab_esqueci = st.tabs(["Login", "Esqueci minha senha"])
+    st.title("🛍️ Vendas bb.arte")
     df_u = get_users_df()
     
-    with tab_login:
-        user_sel = st.selectbox("Usuário", df_u['nome'].tolist(), key="login_user")
-        pwd_input = st.text_input("Senha", type="password", key="login_pwd")
-        if st.button("Entrar", use_container_width=True):
-            user_info = df_u[df_u['nome'] == user_sel].iloc[0]
-            if str(pwd_input) == str(user_info['senha']):
-                st.session_state.logged_in = True
-                st.session_state.user = user_sel
-                st.session_state.role = user_info['role']
-                st.rerun()
-            else:
-                st.error("Senha incorreta.")
-
-    with tab_esqueci:
-        st.subheader("Redefinição de Segurança")
-        user_reset = st.selectbox("Selecione seu usuário", df_u['nome'].tolist(), key="reset_user")
-        user_code_input = st.text_input("Digite seu Código de Recuperação", type="password")
-        nova_pwd = st.text_input("Nova Senha", type="password")
-        confirma_pwd = st.text_input("Confirme a Nova Senha", type="password")
-        
-        if st.button("Validar e Alterar Senha", use_container_width=True):
-            user_data = df_u[df_u['nome'] == user_reset].iloc[0]
-            if str(user_code_input) == str(user_data['codigo']):
-                if nova_pwd == confirma_pwd and nova_pwd != "":
-                    idx = df_u[df_u['nome'] == user_reset].index[0] + 2
-                    ws_usuarios.update_cell(idx, 2, nova_pwd)
-                    st.success("✅ Senha alterada com sucesso!")
-                else:
-                    st.error("As novas senhas não coincidem.")
-            else:
-                st.error("❌ Código Único incorreto.")
+    user_sel = st.selectbox("Usuário", df_u['nome'].tolist())
+    pwd_input = st.text_input("Senha", type="password")
+    if st.button("Entrar", use_container_width=True):
+        user_info = df_u[df_u['nome'] == user_sel].iloc[0]
+        if str(pwd_input) == str(user_info['senha']):
+            st.session_state.logged_in = True
+            st.session_state.user = user_sel
+            st.session_state.role = user_info['role']
+            st.rerun()
+        else:
+            st.error("Senha incorreta.")
     st.stop()
 
 # =========================
@@ -124,41 +82,38 @@ with tabs[0]:
     df_p = get_products_df()
     
     if df_p.empty:
-        st.info("Nenhum produto disponível no momento.")
+        st.info("Nenhum produto disponível.")
     else:
         with st.form("form_venda", clear_on_submit=True):
             col1, col2 = st.columns(2)
             with col1:
                 prod_nome = st.selectbox("Produto", df_p['produto'].tolist())
+                # Busca segura de dados do produto
                 item_data = df_p[df_p['produto'] == prod_nome].iloc[0]
                 
-                p_unitario = float(item_data['preco'])
-                # Captura o custo atual do produto para registrar na venda
-                custo_unitario = float(item_data['custo']) if 'custo' in item_data else 0.0
+                p_unit = float(item_data['preco']) if item_data['preco'] != "" else 0.0
+                c_unit = float(item_data['custo']) if 'custo' in item_data and item_data['custo'] != "" else 0.0
                 
-                qtd = st.number_input("Quantidade", min_value=1, value=1, step=1)
-                valor_total_venda = st.number_input("Valor Total da Venda (R$)", value=p_unitario * qtd, step=0.01)
+                qtd = st.number_input("Quantidade", min_value=1, value=1)
+                v_total = st.number_input("Valor Total (R$)", value=p_unit * qtd, step=0.01)
                 
             with col2:
                 data_v = st.date_input("Data", datetime.now())
-                obs = st.text_input("Observação / Detalhes")
+                obs = st.text_input("Observação")
                 
-            enviado = st.form_submit_button("Confirmar Registro", use_container_width=True)
-            
-            if enviado:
-                # Salva: Vendedor, Data, Valor Total, Produto, Obs, Mês Ref, Qtd, Custo Total
+            if st.form_submit_button("Confirmar Registro", use_container_width=True):
                 ws_vendas.append_row([
                     st.session_state.user, 
                     data_v.strftime("%Y-%m-%d"), 
-                    valor_total_venda, 
+                    v_total, 
                     prod_nome, 
                     f"{obs} (Qtd: {qtd})",
                     data_v.strftime("%m/%Y"),
                     qtd,
-                    custo_unitario * qtd # Custo total da venda
+                    c_unit * qtd
                 ])
-                st.toast(f"✅ Venda de {qtd}x {prod_nome} registrada!", icon='💰')
-                st.success(f"Registrado: {qtd}x {prod_nome} - Total R$ {valor_total_venda:.2f}")
+                st.toast("Venda registrada!")
+                st.rerun()
 
 # --- ABA 2: HISTÓRICO ---
 with tabs[1]:
@@ -168,107 +123,63 @@ with tabs[1]:
         v_df = pd.DataFrame(v_data)
         v_df.columns = [str(c).strip().lower() for c in v_df.columns]
         
-        # Filtro de permissão
         if st.session_state.role != "ADM":
             v_df = v_df[v_df['vendedor'] == st.session_state.user]
-            # Remove coluna de custo para não ADM se ela existir no DF
-            if 'custo_total' in v_df.columns:
-                v_df = v_df.drop(columns=['custo_total'])
         
         if not v_df.empty:
             meses = sorted(v_df['mes_referencia'].unique(), reverse=True)
-            mes_f = st.selectbox("Selecione o Mês", meses)
+            mes_f = st.selectbox("Mês", meses)
             df_f = v_df[v_df['mes_referencia'] == mes_f].copy()
             
-            df_f.index.name = "Código"
             st.dataframe(df_f, use_container_width=True)
             
             # Métricas
-            col_m1, col_m2, col_m3 = st.columns(3)
-            total_venda = df_f['valor'].sum()
-            col_m1.metric("Total Vendido", f"R$ {total_venda:,.2f}")
+            t_venda = pd.to_numeric(df_f['valor']).sum()
+            st.metric("Total Vendido", f"R$ {t_venda:,.2f}")
             
-            # Exibição de Lucro apenas para ADM
             if st.session_state.role == "ADM" and 'custo_total' in df_f.columns:
-                total_custo = pd.to_numeric(df_f['custo_total']).sum()
-                lucro = total_venda - total_custo
-                col_m2.metric("Custo Total", f"R$ {total_custo:,.2f}")
-                col_m3.metric("Lucro Total", f"R$ {lucro:,.2f}", delta=f"{(lucro/total_venda*100) if total_venda > 0 else 0:.1f}% Margem")
-            
-            st.divider()
-            st.subheader("🗑️ Gerenciar Registros")
-            venda_idx = st.selectbox("Selecione uma venda para remover", 
-                                     df_f.index, 
-                                     format_func=lambda x: f"Cod {x} - {df_f.loc[x, 'produto']} (R$ {df_f.loc[x, 'valor']})")
-            
-            if st.button("Excluir Registro Permanente", type="secondary"):
-                ws_vendas.delete_rows(int(venda_idx) + 2)
-                st.warning("Registro removido!")
-                st.rerun()
-        else:
-            st.info("Nenhuma venda encontrada.")
-    else:
-        st.info("A planilha de vendas está vazia.")
+                t_custo = pd.to_numeric(df_f['custo_total']).sum()
+                st.metric("Lucro Total", f"R$ {t_venda - t_custo:,.2f}")
 
 # --- ABA 3: PRODUTOS (ADM) ---
 if st.session_state.role == "ADM":
     with tabs[2]:
-        st.subheader("🛠️ Gestão de Itens e Custos")
-        c_add, c_edit = st.columns(2)
+        col_a, col_b = st.columns(2)
         
-        with c_add:
-            with st.expander("➕ Cadastrar Novo Produto", expanded=True):
-                with st.form("novo_produto_form", clear_on_submit=True):
-                    n_prod = st.text_input("Nome do Item")
-                    n_prec = st.number_input("Preço de Venda Sugerido", min_value=0.0, step=0.01)
-                    n_custo = st.number_input("Custo Unitário", min_value=0.0, step=0.01)
-                    
-                    if st.form_submit_button("Salvar Produto"):
-                        if n_prod:
-                            ws_produtos.append_row([n_prod, n_prec, n_custo, "Ativo"])
-                            st.toast("Produto cadastrado!", icon='✅')
-                            st.rerun()
-                        else:
-                            st.error("O nome do produto é obrigatório.")
+        with col_a:
+            with st.expander("➕ Novo Produto", expanded=True):
+                with st.form("add_prod", clear_on_submit=True):
+                    n = st.text_input("Nome")
+                    p = st.number_input("Preço", min_value=0.0)
+                    c = st.number_input("Custo", min_value=0.0)
+                    if st.form_submit_button("Salvar"):
+                        ws_produtos.append_row([n, p, c, "Ativo"])
+                        st.rerun()
 
-        with c_edit:
-            with st.expander("📝 Editar ou Remover", expanded=True):
-                df_prods_all = pd.DataFrame(ws_produtos.get_all_records())
-                if not df_prods_all.empty:
-                    df_prods_all.columns = [str(c).strip().lower() for c in df_prods_all.columns]
+        with col_b:
+            with st.expander("📝 Editar/Remover", expanded=True):
+                all_p = pd.DataFrame(ws_produtos.get_all_records())
+                if not all_p.empty:
+                    all_p.columns = [str(c).strip().lower() for c in all_p.columns]
+                    sel = st.selectbox("Produto", all_p['produto'].tolist())
+                    item = all_p[all_p['produto'] == sel].iloc[0]
+                    idx = all_p[all_p['produto'] == sel].index[0] + 2
                     
-                    # Seleção do produto para editar
-                    sel_p = st.selectbox("Escolher Produto para Modificar", df_prods_all['produto'].tolist())
-                    dados_p = df_prods_all[df_prods_all['produto'] == sel_p].iloc[0]
-                    idx_p = df_prods_all[df_prods_all['produto'] == sel_p].index[0] + 2
-                    
-                    # Campos de Edição preenchidos com valores atuais
-                    with st.form("form_edicao_rapida"):
-                        edit_nome = st.text_input("Nome do Produto", value=dados_p['produto'])
-                        edit_preco = st.number_input("Preço de Venda", value=float(dados_p['preco']), step=0.01)
-                        edit_custo = st.number_input("Custo Unitário", value=float(dados_p['custo']), step=0.01)
+                    with st.form("edit_prod"):
+                        e_n = st.text_input("Nome", value=item['produto'])
+                        e_p = st.number_input("Preço", value=float(item['preco']))
+                        e_c = st.number_input("Custo", value=float(item['custo']))
                         
-                        col_btn_edit, col_btn_status, col_btn_del = st.columns(3)
-                        
-                        if col_btn_edit.form_submit_button("💾 Salvar"):
-                            # Atualiza as colunas A, B e C (1, 2 e 3)
-                            ws_produtos.update_cell(idx_p, 1, edit_nome)
-                            ws_produtos.update_cell(idx_p, 2, edit_preco)
-                            ws_produtos.update_cell(idx_p, 3, edit_custo)
-                            st.toast("Alterações salvas!", icon='✨')
+                        c1, c2 = st.columns(2)
+                        if c1.form_submit_button("💾 Salvar"):
+                            ws_produtos.update_cell(idx, 1, e_n)
+                            ws_produtos.update_cell(idx, 2, e_p)
+                            ws_produtos.update_cell(idx, 3, e_c)
+                            st.rerun()
+                        if c2.form_submit_button("🗑️ Apagar"):
+                            ws_produtos.delete_rows(idx)
                             st.rerun()
 
-                        if col_btn_status.form_submit_button("👁️ Ocultar"):
-                            ws_produtos.update_cell(idx_p, 4, "Oculto")
-                            st.rerun()
-                            
-                        if col_btn_del.form_submit_button("🗑️ Apagar", type="primary"):
-                            ws_produtos.delete_rows(idx_p)
-                            st.rerun()
-                else:
-                    st.info("Nenhum produto cadastrado.")
-                    
-st.sidebar.divider()
-if st.sidebar.button("Sair do Sistema"):
+if st.sidebar.button("Sair"):
     st.session_state.logged_in = False
     st.rerun()
