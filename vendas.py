@@ -31,7 +31,7 @@ custom_css = """
         background-color: #333333 !important;
         background: #333333 !important;
         color: #ffffff !important;
-        border: 0px solid #555555 !important;
+        border: 1px solid #555555 !important;
         font-weight: 500;
     }
 
@@ -41,7 +41,7 @@ custom_css = """
             background-color: #ffffff !important;
             background: #ffffff !important;
             color: #000000 !important;
-            border: 0px solid #333333 !important;
+            border: 1px solid #333333 !important;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         div.stButton > button span,
