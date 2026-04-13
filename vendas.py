@@ -18,7 +18,7 @@ custom_css = """
         background-color: #fab0b8;
     }
     [data-testid="stSidebar"] {
-        background-color: #b2ccd3;
+        background-color: #718f98;
     }
 
     /* 2. TEXTO GERAL */
