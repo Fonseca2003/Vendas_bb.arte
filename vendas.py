@@ -128,25 +128,35 @@ with tabs[0]:
     else:
         with st.form("form_venda", clear_on_submit=True):
             col1, col2 = st.columns(2)
+            
             with col1:
-                prod_nome = st.selectbox("Produto", df_p['produto'].tolist())
+                prod_nome = st.selectbox("Produto", df_p['produto'].tolist(), key="produto_select")
+                
+                # Busca os dados do produto **dentro** do formulário
                 item_data = df_p[df_p['produto'] == prod_nome].iloc[0]
                 
-                p_unitario = float(item_data['preco'])
-                # Captura o custo atual do produto para registrar na venda
-                custo_unitario = float(item_data['custo']) if 'custo' in item_data else 0.0
+                preco_unitario = float(item_data.get('preco', 0.0))
+                custo_unitario = float(item_data.get('custo', 0.0))
                 
                 qtd = st.number_input("Quantidade", min_value=1, value=1, step=1)
-                valor_total_venda = st.number_input("Valor Total da Venda (R$)", value=p_unitario * qtd, step=0.01)
+                
+                # Valor sugerido (pode ser alterado pelo usuário)
+                valor_sugerido = preco_unitario * qtd
+                valor_total_venda = st.number_input(
+                    "Valor Total da Venda (R$)", 
+                    value=valor_sugerido, 
+                    step=0.01,
+                    format="%.2f"
+                )
                 
             with col2:
                 data_v = st.date_input("Data", datetime.now())
                 obs = st.text_input("Observação / Detalhes")
-                
-            enviado = st.form_submit_button("Confirmar Registro", use_container_width=True)
+            
+            enviado = st.form_submit_button("✅ Confirmar Registro", use_container_width=True)
             
             if enviado:
-                # Salva: Vendedor, Data, Valor Total, Produto, Obs, Mês Ref, Qtd, Custo Total
+                # Registra a venda
                 ws_vendas.append_row([
                     st.session_state.user, 
                     data_v.strftime("%Y-%m-%d"), 
@@ -155,10 +165,12 @@ with tabs[0]:
                     f"{obs} (Qtd: {qtd})",
                     data_v.strftime("%m/%Y"),
                     qtd,
-                    custo_unitario * qtd # Custo total da venda
+                    round(custo_unitario * qtd, 2)   # Custo total
                 ])
-                st.toast(f"✅ Venda de {qtd}x {prod_nome} registrada!", icon='💰')
-                st.success(f"Registrado: {qtd}x {prod_nome} - Total R$ {valor_total_venda:.2f}")
+                
+                st.toast(f"✅ Venda de {qtd}x {prod_nome} registrada com sucesso!", icon='💰')
+                st.success(f"Registrado: {qtd}x {prod_nome} — Total R$ {valor_total_venda:.2f}")
+                # st.rerun()  # opcional
 
 # --- ABA 2: HISTÓRICO ---
 with tabs[1]:
