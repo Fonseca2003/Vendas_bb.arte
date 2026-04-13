@@ -21,64 +21,66 @@ custom_css = """
         background-color: #b2ccd3;
     }
 
-    /* 2. TEXTO GERAL (BRANCO) */
-    .stApp, .stMarkdown, p, h1, h2, h3, label, .stSelectbox label, .stTextInput label {
+    /* 2. TEXTO GERAL */
+    .stApp, .stMarkdown, p, h1, h2, h3 {
+        color: #ffffff !important;
+    }
+    
+    /* Labels (títulos dos campos de entrada) */
+    label, .stSelectbox label, .stTextInput label {
         color: #ffffff !important;
     }
 
-    /* 3. BOTÕES - MODO ESCURO (padrão) */
+    /* 3. BOTÕES - MODO PADRÃO */
     div.stButton > button {
         background-color: #333333 !important;
-        background: #333333 !important;
         color: #ffffff !important;
         border: 1px solid #555555 !important;
         font-weight: 500;
     }
 
-    /* 4. BOTÕES NO MODO CLARO DO CELULAR */
+    /* 4. BOTÕES NO MODO CLARO (CELULAR) */
     @media (prefers-color-scheme: light) {
         div.stButton > button {
             background-color: #ffffff !important;
-            background: #ffffff !important;
             color: #000000 !important;
             border: 1px solid #333333 !important;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         div.stButton > button span,
-        div.stButton > button p,
-        div.stButton > button div {
+        div.stButton > button p {
             color: #000000 !important;
         }
     }
 
-    /* 5. BOTÃO PRIMÁRIO */
+    /* 5. BOTÃO PRIMÁRIO (Destaque Azul) */
     div.stButton > button[kind="primary"] {
         background-color: #0066cc !important;
         color: #ffffff !important;
+        border: none !important;
     }
 
-    @media (prefers-color-scheme: light) {
-        div.stButton > button[kind="primary"] {
-            background-color: #0066cc !important;
-            color: #ffffff !important;
-        }
-    }
-
-    /* 6. TÍTULOS DOS EXPANDERS (Novo Produto / Editar/Remover) */
-    /* Seletor principal mais forte */
-    div[data-testid="stExpander"] div[role="button"] p,
-    .streamlit-expanderHeader p,
-    .streamlit-expanderHeader,
-    section[data-testid="stExpander"] > div > div > div > p {
+    /* 6. EXPANDERS (CORREÇÃO TÍTULOS BRANCOS NO MODO CLARO) */
+    /* Força Branco no Modo Escuro/Padronizado */
+    [data-testid="stExpanderSummary"] p {
         color: #ffffff !important;
     }
 
-    /* Modo Claro - Títulos ficam PRETOS */
+    /* Ajustes específicos para quando o celular entra em Modo Claro */
     @media (prefers-color-scheme: light) {
-        div[data-testid="stExpander"] div[role="button"] p,
-        .streamlit-expanderHeader p,
-        .streamlit-expanderHeader,
-        section[data-testid="stExpander"] > div > div > div > p {
+        /* Título do Expander fica Preto */
+        [data-testid="stExpanderSummary"] p {
+            color: #000000 !important;
+        }
+        
+        /* Ícone da Seta do Expander fica Preto */
+        [data-testid="stExpanderSummary"] svg {
+            fill: #000000 !important;
+            color: #000000 !important;
+        }
+
+        /* Labels dos campos dentro do expander ficam Pretos para legibilidade */
+        [data-testid="stExpanderDetails"] label {
             color: #000000 !important;
         }
     }
