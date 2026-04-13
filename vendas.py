@@ -125,18 +125,19 @@ if not st.session_state.logged_in:
 
     img_base64 = get_base64_image("logo.png")
 
-    if img_base64:
+if img_base64:
         st.markdown(
             f"""
-            <div style="display: flex; align-items: center; margin-bottom: 0px;">
-                <img src="data:image/png;base64,{img_base64}" style="width: 40px; margin-right: 15px;">
-                <h1 style="margin: 0;">Vendas bb.arte</h1>
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                <img src="data:image/png;base64,{img_base64}" 
+                     style="width: 45px; height: 45px; object-fit: contain; display: block;">
+                <h1 style="margin: 0; padding: 0; line-height: 1; display: flex; align-items: center;">
+                    Vendas bb.arte
+                </h1>
             </div>
             """,
             unsafe_allow_html=True
         )
-    else:
-        st.title("🛍️ Vendas bb.arte")
     
     tab_login, tab_esqueci = st.tabs(["Login", "Esqueci minha senha"])
     df_u = get_users_df()
