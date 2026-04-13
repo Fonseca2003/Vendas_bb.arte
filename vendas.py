@@ -64,22 +64,22 @@ custom_css = """
         }
     }
 
-    /* 6. TÍTULOS DAS SEÇÕES DE PRODUTOS (NOVO / EDITAR) - FICAM PRETOS NO MODO CLARO */
-    .stExpander > div > div > div > h2,
-    .stExpander > div > div > div > h3,
-    .stExpander label > div > p,
-    section[data-testid="stExpander"] h2,
-    section[data-testid="stExpander"] h3 {
+    /* 6. TÍTULOS DOS EXPANDERS (Novo Produto / Editar/Remover) */
+    /* Seletor principal mais forte */
+    div[data-testid="stExpander"] div[role="button"] p,
+    .streamlit-expanderHeader p,
+    .streamlit-expanderHeader,
+    section[data-testid="stExpander"] > div > div > div > p {
         color: #ffffff !important;
     }
 
+    /* Modo Claro - Títulos ficam PRETOS */
     @media (prefers-color-scheme: light) {
-        .stExpander > div > div > div > h2,
-        .stExpander > div > div > div > h3,
-        .stExpander label > div > p,
-        section[data-testid="stExpander"] h2,
-        section[data-testid="stExpander"] h3 {
-            color: #000000 !important;   /* Título preto no modo claro */
+        div[data-testid="stExpander"] div[role="button"] p,
+        .streamlit-expanderHeader p,
+        .streamlit-expanderHeader,
+        section[data-testid="stExpander"] > div > div > div > p {
+            color: #000000 !important;
         }
     }
 </style>
