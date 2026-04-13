@@ -11,7 +11,7 @@ import base64
 # Podes alterar as cores HEX (#...) abaixo para as que preferires
 custom_css = """
 <style>
-    /* 1. FUNDOS FIXOS */
+    /* 1. CORES DE FUNDO DO SITE */
     [data-testid="stAppViewContainer"] {
         background-color: #718f98; 
     }
@@ -22,25 +22,26 @@ custom_css = """
         background-color: #b2ccd3;
     }
 
-    /* 2. TEXTO GERAL (FORA DOS BOTÕES) */
+    /* 2. TEXTO GERAL (BRANCO) */
     .stApp, .stMarkdown, p, h1, h2, h3, label {
         color: #ffffff !important;
     }
 
-    /* 3. CONFIGURAÇÃO DOS BOTÕES (PADRÃO/ESCURO) */
+    /* 3. BOTÕES - CONFIGURAÇÃO PADRÃO (MODO ESCURO) */
     div.stButton > button {
-        background-color: #333333 !important; /* Fundo escuro para contrastar */
-        color: #ffffff !important;            /* Texto branco por padrão */
-        border: none !important;
+        background-color: #333333 !important; /* Fundo escuro sólido */
+        background: #333333 !important;       /* Remove gradientes */
+        color: #ffffff !important;            /* Texto branco */
+        border: 1px solid #333333 !important;
+        width: 100%;                          /* Opcional: botão ocupa largura total */
     }
 
-    /* 4. LÓGICA PARA MODO CLARO DO CELULAR */
+    /* 4. LÓGICA PARA MODO CLARO DO TELEMÓVEL */
     @media (prefers-color-scheme: light) {
-        /* No modo claro, o fundo do botão continua escuro, mas o texto fica PRETO */
-        /* Ou, se preferir o botão branco com texto preto: */
         div.stButton > button {
-            background-color: #ffffff !important; 
-            color: #000000 !important;
+            background-color: #ffffff !important; /* Fundo branco no modo claro */
+            background: #ffffff !important;
+            color: #000000 !important;            /* TEXTO PRETO NO MODO CLARO */
             border: 1px solid #000000 !important;
         }
     }
