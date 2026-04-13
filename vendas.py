@@ -286,8 +286,6 @@ with tabs[1]:
 # --- ABA 3: PRODUTOS (ADM) ---
 if st.session_state.role == "ADM":
     with tabs[2]:
-        st.subheader("🛠️ Gestão de Itens")
-        st.divider()
         c_add, c_edit = st.columns(2)
         
         with c_add:
