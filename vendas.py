@@ -132,7 +132,7 @@ if not st.session_state.logged_in:
                     <img src="data:image/png;base64,{img_base64}" 
                          style="width: 45px; height: 45px; object-fit: contain; display: block;">
                     <h1 style="margin: 0; padding: 0; line-height: 1; display: flex; align-items: center;">
-                        Vendas bb.arte
+                        bb.arte
                     </h1>
                 </div>
                 """,
