@@ -128,7 +128,7 @@ if not st.session_state.logged_in:
     if img_base64:
         st.markdown(
             f"""
-            <div style="display: flex; align-items: center; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; margin-bottom: 0px;">
                 <img src="data:image/png;base64,{img_base64}" style="width: 40px; margin-right: 15px;">
                 <h1 style="margin: 0;">Vendas bb.arte</h1>
             </div>
