@@ -34,7 +34,6 @@ custom_css = """
     div.stButton > button, div[data-testid="stFormSubmitButton"] > button {
         background-color: #333333 !important;
         color: #ffffff !important;
-        border: 1px solid #555555 !important;
     }
 
     /* 4. BOTÕES NO MODO CLARO (CELULAR) - CORREÇÃO DE TEXTO BRANCO */
@@ -44,7 +43,6 @@ custom_css = """
         div[data-testid="stFormSubmitButton"] > button:not([kind="primary"]) {
             background-color: #ffffff !important;
             color: #000000 !important;
-            border: 1px solid #333333 !important;
         }
 
         /* Força o texto (p e span) a ficar preto dentro desses botões */
@@ -274,10 +272,10 @@ with tabs[1]:
                 col_m3.metric("Lucro Total", f"R$ {lucro:,.2f}")
             
             st.divider()
-            st.subheader("🗑️ Eliminar Registos")
-            venda_idx = st.selectbox("Escolha uma venda para apagar", df_f.index)
+            st.subheader("🗑️ Excluir Registos")
+            venda_idx = st.selectbox("Escolha uma venda para excluir", df_f.index)
             
-            if st.button("Remover Permanentemente", type="secondary"):
+            if st.button("Confirmar Exclusão", type="secondary"):
                 ws_vendas.delete_rows(int(venda_idx) + 2)
                 st.cache_data.clear()
                 st.warning("Registo removido!")
@@ -289,6 +287,7 @@ with tabs[1]:
 if st.session_state.role == "ADM":
     with tabs[2]:
         st.subheader("🛠️ Gestão de Itens")
+        st.divider()
         c_add, c_edit = st.columns(2)
         
         with c_add:
@@ -303,6 +302,7 @@ if st.session_state.role == "ADM":
                         st.cache_data.clear()
                         st.toast("Cadastrado!", icon='✅')
                         st.rerun()
+        st.divider()
 
         with c_edit:
             st.markdown("#### 📝 Editar/Remover")
