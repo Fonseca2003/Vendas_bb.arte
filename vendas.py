@@ -53,33 +53,15 @@ if 'logged_in' not in st.session_state:
     st.session_state.role = None
 
 if not st.session_state.logged_in:
-    # --- LOGO E TÍTULO ALINHADOS (CSS PARA MOBILE) ---
-    import base64
-
-    # Função para converter imagem local para base64 (necessário para HTML no Streamlit)
-    def get_base64_image(image_path):
+    # --- INCLUSÃO DO LOGO ---
+    col_logo, _ = st.columns([1, 1]) # Ajuste de layout se necessário
+    with col_logo:
         try:
-            with open(image_path, "rb") as img_file:
-                return base64.b64encode(img_file.read()).decode()
+            st.image("logo.png", width=200)
         except:
-            return None
-
-    img_base64 = get_base64_image("logo.png")
-
-    if img_base64:
-        # Renderiza HTML para forçar alinhamento horizontal
-        st.markdown(
-            f"""
-            <div style="display: flex; align-items: center; margin-bottom: 20px;">
-                <img src="data:image/png;base64,{img_base64}" style="width: 40px; margin-right: 15px;">
-                <h1 style="margin: 0;">Vendas bb.arte</h1>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    else:
-        # Fallback caso a imagem não exista
-        st.title("🛍️ Vendas bb.arte")
+            st.warning("Arquivo logo.png não encontrado no diretório.")
+    
+    st.title("Vendas bb.arte")
     
     tab_login, tab_esqueci = st.tabs(["Login", "Esqueci minha senha"])
     df_u = get_users_df()
