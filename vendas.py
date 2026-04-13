@@ -218,7 +218,6 @@ if st.session_state.role == "ADM":
         
         with c_add:
             with st.expander("➕ Cadastrar Novo Produto", expanded=True):
-                # Usamos o form para resetar os campos ao enviar
                 with st.form("novo_produto_form", clear_on_submit=True):
                     n_prod = st.text_input("Nome do Item")
                     n_prec = st.number_input("Preço de Venda Sugerido", min_value=0.0, step=0.01)
@@ -233,21 +232,42 @@ if st.session_state.role == "ADM":
                             st.error("O nome do produto é obrigatório.")
 
         with c_edit:
-            with st.expander("📝 Editar/Ocultar", expanded=True):
+            with st.expander("📝 Editar ou Remover", expanded=True):
                 df_prods_all = pd.DataFrame(ws_produtos.get_all_records())
                 if not df_prods_all.empty:
                     df_prods_all.columns = [str(c).strip().lower() for c in df_prods_all.columns]
-                    sel_p = st.selectbox("Escolher Produto", df_prods_all['produto'].tolist())
+                    
+                    # Seleção do produto para editar
+                    sel_p = st.selectbox("Escolher Produto para Modificar", df_prods_all['produto'].tolist())
+                    dados_p = df_prods_all[df_prods_all['produto'] == sel_p].iloc[0]
                     idx_p = df_prods_all[df_prods_all['produto'] == sel_p].index[0] + 2
                     
-                    c_btn1, c_btn2 = st.columns(2)
-                    if c_btn1.button("Ocultar Item", use_container_width=True):
-                        ws_produtos.update_cell(idx_p, 4, "Oculto") # Coluna 4 é o Status agora
-                        st.rerun()
-                    if c_btn2.button("Apagar Definitivo", type="primary", use_container_width=True):
-                        ws_produtos.delete_rows(idx_p)
-                        st.rerun()
+                    # Campos de Edição preenchidos com valores atuais
+                    with st.form("form_edicao_rapida"):
+                        edit_nome = st.text_input("Nome do Produto", value=dados_p['produto'])
+                        edit_preco = st.number_input("Preço de Venda", value=float(dados_p['preco']), step=0.01)
+                        edit_custo = st.number_input("Custo Unitário", value=float(dados_p['custo']), step=0.01)
+                        
+                        col_btn_edit, col_btn_status, col_btn_del = st.columns(3)
+                        
+                        if col_btn_edit.form_submit_button("💾 Salvar"):
+                            # Atualiza as colunas A, B e C (1, 2 e 3)
+                            ws_produtos.update_cell(idx_p, 1, edit_nome)
+                            ws_produtos.update_cell(idx_p, 2, edit_preco)
+                            ws_produtos.update_cell(idx_p, 3, edit_custo)
+                            st.toast("Alterações salvas!", icon='✨')
+                            st.rerun()
 
+                        if col_btn_status.form_submit_button("👁️ Ocultar"):
+                            ws_produtos.update_cell(idx_p, 4, "Oculto")
+                            st.rerun()
+                            
+                        if col_btn_del.form_submit_button("🗑️ Apagar", type="primary"):
+                            ws_produtos.delete_rows(idx_p)
+                            st.rerun()
+                else:
+                    st.info("Nenhum produto cadastrado.")
+                    
 st.sidebar.divider()
 if st.sidebar.button("Sair do Sistema"):
     st.session_state.logged_in = False
