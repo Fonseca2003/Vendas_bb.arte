@@ -276,7 +276,7 @@ with tabs[1]:
             st.subheader("🗑️ Excluir Registos")
             venda_idx = st.selectbox("Escolha uma venda para excluir", df_f.index)
             
-            if st.button("Confirmar Exclusão", type="secondary"):
+            if st.button("❌  Confirmar Exclusão", type="secondary"):
                 ws_vendas.delete_rows(int(venda_idx) + 2)
                 st.cache_data.clear()
                 st.warning("Registo removido!")
@@ -295,7 +295,7 @@ if st.session_state.role == "ADM":
                 n_prod = st.text_input("Nome do Item")
                 n_prec = st.number_input("Preço de Venda", min_value=0.0, step=0.01)
                 n_custo = st.number_input("Custo Unitário", min_value=0.0, step=0.01)
-                if st.form_submit_button("Salvar"):
+                if st.form_submit_button("💾  Salvar"):
                     if n_prod:
                         ws_produtos.append_row([n_prod, n_prec, n_custo, "Ativo"])
                         st.cache_data.clear()
@@ -318,17 +318,17 @@ if st.session_state.role == "ADM":
                     edit_custo = st.number_input("Custo", value=float(dados_p['custo']), step=0.01)
                     
                     b1, b2, b3 = st.columns(3)
-                    if b1.form_submit_button("💾 Salvar"):
+                    if b1.form_submit_button("💾  Salvar"):
                         ws_produtos.update_cell(idx_p, 1, edit_nome)
                         ws_produtos.update_cell(idx_p, 2, edit_preco)
                         ws_produtos.update_cell(idx_p, 3, edit_custo)
                         st.cache_data.clear()
                         st.rerun()
-                    if b2.form_submit_button("👁️ Ocultar"):
+                    if b2.form_submit_button("👁️  Ocultar"):
                         ws_produtos.update_cell(idx_p, 4, "Oculto")
                         st.cache_data.clear()
                         st.rerun()
-                    if b3.form_submit_button("🗑️ Apagar", type="primary"):
+                    if b3.form_submit_button("❌  Apagar", type="primary"):
                         ws_produtos.delete_rows(idx_p)
                         st.cache_data.clear()
                         st.rerun()
