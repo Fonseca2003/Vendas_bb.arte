@@ -8,7 +8,8 @@ import base64
 # =========================
 # CONEXÃO E FUNÇÕES BASE
 # =========================
-def connect_google_sheets():
+@st.cache_resource
+def get_spreadsheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     try:
         creds_dict = st.secrets["gcp_service_account"]
@@ -20,16 +21,18 @@ def connect_google_sheets():
         st.error(f"Erro de conexão: {e}")
         st.stop()
 
-sheet = connect_google_sheets()
+sheet = get_spreadsheet()
 ws_vendas = sheet.worksheet("vendas")
 ws_usuarios = sheet.worksheet("usuarios")
 ws_produtos = sheet.worksheet("produtos")
 
+@st.cache_data(ttl=600)
 def get_users_df():
     df = pd.DataFrame(ws_usuarios.get_all_records())
     df.columns = [str(c).strip().lower() for c in df.columns]
     return df
 
+@st.cache_data(ttl=600)
 def get_products_df():
     data = ws_produtos.get_all_records()
     if not data:
@@ -39,6 +42,14 @@ def get_products_df():
     if 'status' in df.columns:
         return df[df['status'] != 'Oculto']
     return df
+
+@st.cache_data(ttl=600)
+def get_vendas_data():
+    return ws_vendas.get_all_records()
+
+@st.cache_data(ttl=600)
+def get_all_products_raw():
+    return ws_produtos.get_all_records()
 
 # =========================
 # SISTEMA DE LOGIN E SEGURANÇA
@@ -100,6 +111,7 @@ if not st.session_state.logged_in:
                 if nova_pwd == confirma_pwd and nova_pwd != "":
                     idx = df_u[df_u['nome'] == user_reset].index[0] + 2
                     ws_usuarios.update_cell(idx, 2, nova_pwd)
+                    st.cache_data.clear() # Limpa o cache após alterar a senha
                     st.success("✅ Senha alterada com sucesso!")
                 else:
                     st.error("As novas senhas não coincidem.")
@@ -171,13 +183,14 @@ with tabs[0]:
                     custo_total
                 ])
                 
+                st.cache_data.clear() # Limpa o cache para atualizar o histórico
                 st.success(f"Registrado com sucesso! Total: R$ {valor_total_venda:.2f}")
-                st.balloons() # Opcional: feedback visual de sucesso
+                st.balloons() 
 
 # --- ABA 2: HISTÓRICO ---
 with tabs[1]:
     st.subheader("📊 Relatório de Vendas")
-    v_data = ws_vendas.get_all_records()
+    v_data = get_vendas_data() # Usa a função com cache
     if v_data:
         v_df = pd.DataFrame(v_data)
         v_df.columns = [str(c).strip().lower() for c in v_df.columns]
@@ -199,7 +212,8 @@ with tabs[1]:
             
             # Métricas
             col_m1, col_m2, col_m3 = st.columns(3)
-            total_venda = df_f['valor'].sum()
+            # Garante que o valor seja numérico para evitar erros no .sum()
+            total_venda = pd.to_numeric(df_f['valor']).sum() 
             col_m1.metric("Total Vendido", f"R$ {total_venda:,.2f}")
             
             # Exibição de Lucro apenas para ADM
@@ -217,6 +231,7 @@ with tabs[1]:
             
             if st.button("Excluir Registro Permanente", type="secondary"):
                 ws_vendas.delete_rows(int(venda_idx) + 2)
+                st.cache_data.clear() # Limpa o cache após deletar a venda
                 st.warning("Registro removido!")
                 st.rerun()
         else:
@@ -240,6 +255,7 @@ if st.session_state.role == "ADM":
                     if st.form_submit_button("Salvar Produto"):
                         if n_prod:
                             ws_produtos.append_row([n_prod, n_prec, n_custo, "Ativo"])
+                            st.cache_data.clear() # Limpa o cache após criar novo produto
                             st.toast("Produto cadastrado!", icon='✅')
                             st.rerun()
                         else:
@@ -247,7 +263,7 @@ if st.session_state.role == "ADM":
 
         with c_edit:
             with st.expander("📝 Editar ou Remover", expanded=True):
-                df_prods_all = pd.DataFrame(ws_produtos.get_all_records())
+                df_prods_all = pd.DataFrame(get_all_products_raw()) # Usa a função com cache
                 if not df_prods_all.empty:
                     df_prods_all.columns = [str(c).strip().lower() for c in df_prods_all.columns]
                     
@@ -269,15 +285,18 @@ if st.session_state.role == "ADM":
                             ws_produtos.update_cell(idx_p, 1, edit_nome)
                             ws_produtos.update_cell(idx_p, 2, edit_preco)
                             ws_produtos.update_cell(idx_p, 3, edit_custo)
+                            st.cache_data.clear() # Limpa o cache após editar produto
                             st.toast("Alterações salvas!", icon='✨')
                             st.rerun()
 
                         if col_btn_status.form_submit_button("👁️ Ocultar"):
                             ws_produtos.update_cell(idx_p, 4, "Oculto")
+                            st.cache_data.clear() # Limpa o cache após ocultar produto
                             st.rerun()
                             
                         if col_btn_del.form_submit_button("🗑️ Apagar", type="primary"):
                             ws_produtos.delete_rows(idx_p)
+                            st.cache_data.clear() # Limpa o cache após apagar produto
                             st.rerun()
                 else:
                     st.info("Nenhum produto cadastrado.")
