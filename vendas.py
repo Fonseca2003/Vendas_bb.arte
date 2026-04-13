@@ -302,9 +302,9 @@ if st.session_state.role == "ADM":
                         st.cache_data.clear()
                         st.toast("Cadastrado!", icon='✅')
                         st.rerun()
-        st.divider()
 
         with c_edit:
+            st.divider()
             st.markdown("#### 📝 Editar/Remover")
             df_prods_all = pd.DataFrame(ws_produtos.get_all_records())
             if not df_prods_all.empty:
